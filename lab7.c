@@ -77,12 +77,12 @@ void* DirCopyThread(void* arg) {
 void StartDirCopyThread(CopyInfo* copyInfo) {
 	pthread_t thread;
 	bool fdLimitReached = false;
-
+	int err;
 	while (true) {
 		if (fdLimitReached) {
 			sleep(FD_LIMIT_TIMEOUT_SEC);
 		}
-		int err = pthread_create(&thread, &threadAttr, &DirCopyThread, copyInfo);
+		err = pthread_create(&thread, &threadAttr, &DirCopyThread, copyInfo);
 		if (!err) {
 			break;
 		}
@@ -91,17 +91,21 @@ void StartDirCopyThread(CopyInfo* copyInfo) {
 		}
 		fdLimitReached = true;
 	}
+	err = pthread_join(thread, NULL);
+	if (err) {
+		err_exit(err, "pthread_join");
+	}
 }
 
 void StartFileCopyThread(CopyInfo* copyInfo) {
 	pthread_t thread;
 	bool fdLimitReached = false;
-
+	int err;
 	while (true) {
 		if (fdLimitReached) {
 			sleep(FD_LIMIT_TIMEOUT_SEC);
 		}
-		int err = pthread_create(&thread, &threadAttr, &FileCopyThread, copyInfo);
+		err = pthread_create(&thread, &threadAttr, &FileCopyThread, copyInfo);
 		if (!err) {
 			break;
 		}
@@ -109,6 +113,10 @@ void StartFileCopyThread(CopyInfo* copyInfo) {
 			err_exit(err, "pthread_create");
 		}
 		fdLimitReached = true;
+	}
+	err = pthread_join(thread, NULL);
+	if (err) {
+		err_exit(err, "pthread_join");
 	}
 }
 
